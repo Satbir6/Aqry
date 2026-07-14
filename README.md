@@ -7,77 +7,109 @@
 [![Test and build](https://github.com/Satbir6/Aqry/actions/workflows/test.yml/badge.svg)](https://github.com/Satbir6/Aqry/actions/workflows/test.yml)
 [![Go 1.23+](https://img.shields.io/badge/Go-1.23%2B-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![Platforms](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-7C8CFF)](#platform-support)
+[![Prebuilt binaries](https://img.shields.io/badge/prebuilt%20binaries-repository-63D297)](#install)
+[![Last commit](https://img.shields.io/github/last-commit/Satbir6/Aqry?color=7C8CFF)](https://github.com/Satbir6/Aqry/commits/main)
+[![Repository size](https://img.shields.io/github/repo-size/Satbir6/Aqry?color=63D297)](https://github.com/Satbir6/Aqry)
 
 </div>
 
-`aqry` is a modern DNS resolver for the terminal. Use it as a clean, script-friendly CLI for quick answers, or open the interactive TUI to explore record types and DNS resolvers without memorizing flags.
+`aqry` is a fast DNS resolver for the terminal. It gives clean one-line answers for scripts and a polished keyboard-driven TUI when you want to inspect records interactively.
 
-```console
-$ aqry example.com
-104.20.34.220
+> Status: Early public release. Core DNS lookup and TUI features are usable, but packaging and advanced DNS features are still evolving.
+
+## Contents
+
+- [Why aqry?](#why-aqry)
+- [Install](#install)
+- [Usage](#usage)
+- [Interactive TUI](#interactive-tui)
+- [DNS support](#dns-support)
+- [Platform support](#platform-support)
+- [Development](#development)
+- [Roadmap](#roadmap)
+- [Uninstall](#uninstall)
+
+## Preview
+
+<p align="center">
+  <img src="assets/aqry-demo-placeholder.svg" alt="Dark terminal preview of the aqry interactive DNS resolver" width="900">
+</p>
+
+<p align="center"><em>A recorded terminal demo will replace this placeholder.</em></p>
+
+## Quick start
+
+Install a prebuilt binary on Linux or macOS—Go is not required:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.sh | sh
 ```
 
-```text
-╭──────────────────────────────────────────────────────────────────────╮
-│ aqry                                                    DNS Resolver │
-│                                                                      │
-│ › Domain                         ╭─ Results ───────────────────────╮ │
-│   example.com                    │ ✓ Resolved successfully         │ │
-│                                  │                                  │ │
-│   Record Type                    │ 104.20.34.220                    │ │
-│   [ A ] AAAA CNAME MX TXT NS     │                                  │ │
-│                                  ╰──────────────────────────────────╯ │
-│   Resolver · System DNS                                             │
-│                                                                      │
-│ enter lookup · tab navigate · ? help · ctrl+c quit                  │
-╰──────────────────────────────────────────────────────────────────────╯
+Then run a quick lookup or open the interactive workspace:
+
+```sh
+aqry example.com
+aqry
 ```
+
+The installer prints the exact installed path and command to use if the destination is not already in your `PATH`.
 
 ## Why aqry?
 
-- **Fast by default** — `aqry domain.com` prints one IPv4 address and nothing else.
-- **Interactive when useful** — launch the keyboard-driven TUI with `aqry`.
-- **Multiple record types** — query A, AAAA, CNAME, MX, TXT, and NS records.
-- **Resolver control** — use system DNS, Cloudflare, Google, Quad9, or a custom server.
-- **Automation friendly** — plain output, JSON output, stable errors, and documented exit codes.
-- **Responsive terminal UI** — compact, standard, and wide layouts with clear focus states.
-- **Cross-platform Go binary** — designed for Linux, macOS, and Windows.
+Traditional DNS tools are excellent at deep diagnostics, but their output can be noisy for everyday checks. `aqry` keeps the common path short: pass a domain to get a script-friendly answer, or run it without arguments for a focused interactive workspace.
+
+## Features
+
+| Feature | Status |
+| --- | --- |
+| Fast IPv4 lookup | Supported |
+| Interactive TUI | Supported |
+| A / AAAA / CNAME / MX / TXT / NS | Supported |
+| Resolver picker | Supported |
+| JSON output | Supported |
+| Clipboard copy | Supported |
+| SOA / CAA / SRV | Planned |
+| DNSSEC validation | Planned |
+| GitHub Release binaries | Planned |
+
+## How aqry compares
+
+| Tool | Best for |
+| --- | --- |
+| `dig` | Advanced DNS debugging |
+| `nslookup` | Basic built-in DNS checks |
+| `host` | Simple DNS lookups |
+| `aqry` | Fast answers plus an interactive DNS workspace |
 
 ## Install
 
-### One-command installation on Linux and macOS
+### Linux and macOS
 
-The installer downloads a prebuilt `aqry` binary stored directly in this repository. **It does not use GitHub Release artifacts, and users do not need Go installed.**
+The installer downloads a matching prebuilt `aqry` binary stored directly in this repository. It detects the operating system and CPU architecture, verifies the published SHA-256 checksum, extracts the binary, and installs it into a user-writable directory.
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.sh | sh
 ```
 
-The installer:
+The installer supports Linux and macOS on `amd64` and `arm64`. It needs `curl` or `wget`, `tar`, and one of `sha256sum`, `shasum`, or `openssl`. It never invokes `sudo`, and Go is not required.
 
-1. Detects Linux or macOS.
-2. Detects `amd64` or `arm64`.
-3. Downloads the matching binary archive and its published SHA-256 checksum.
-4. Verifies and extracts the binary.
-5. Installs it into a user-writable binary directory.
-6. Verifies the installation with `aqry --version`.
-7. Prints the installed path and the next command to run.
-
-The installer needs `curl` or `wget`, `tar`, and one of `sha256sum`, `shasum`, or `openssl`. Go is not required.
+By default, it uses `/usr/local/bin` when that directory is already writable. Otherwise it installs to `$HOME/.local/bin`.
 
 #### Arch Linux
 
+Use the same one-command installer:
+
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.sh | sh
 ```
 
-For clipboard support in the TUI, X11 sessions may also need `xclip`:
+For clipboard support in an X11 TUI session, install `xclip`:
 
 ```sh
 sudo pacman -S --needed xclip
 ```
 
-#### Review the installer before running it
+#### Review the installer first
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.sh -o install-aqry.sh
@@ -92,9 +124,7 @@ curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.s
   AQRY_INSTALL_DIR="$HOME/bin" sh
 ```
 
-By default, the installer uses `/usr/local/bin` only when that directory is already writable. Otherwise it uses `$HOME/.local/bin`; it never invokes `sudo`.
-
-To install from another branch, tag, or commit that contains matching files under `dist/`:
+To install from another branch, tag, or commit containing matching files under `dist/`:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.sh | \
@@ -102,6 +132,8 @@ curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.s
 ```
 
 ### Direct binary downloads
+
+These archives are committed under `dist/`; they are not GitHub Release assets.
 
 | Platform | Architecture | Download |
 | --- | --- | --- |
@@ -126,7 +158,7 @@ go build -o bin/aqry ./cmd/aqry
 ./bin/aqry --version
 ```
 
-To install the binary for your user:
+To install the source-built binary for your user:
 
 ```sh
 mkdir -p "$HOME/.local/bin"
@@ -135,38 +167,25 @@ install -m 0755 bin/aqry "$HOME/.local/bin/aqry"
 
 ## Usage
 
-### Quick lookup
+Run `aqry` with a domain for plain output. By default it prints the first IPv4 address with no labels or ANSI styling.
 
 ```sh
 aqry example.com
 ```
 
-The default output is the first IPv4 address with no labels or ANSI styling.
+## Examples
 
-### Common commands
-
-```sh
-# Every A record
-aqry example.com --all
-
-# IPv6
-aqry example.com --type AAAA
-
-# Mail exchanges
-aqry example.com -t MX --all
-
-# Structured output
-aqry example.com --json
-
-# Query Cloudflare with a five-second timeout
-aqry example.com --server 1.1.1.1 --timeout 5
-
-# Open the TUI
-aqry
-
-# Open the TUI with a prefilled domain
-aqry --interactive example.com
-```
+| Task | Command |
+| --- | --- |
+| First IPv4 address | `aqry example.com` |
+| All IPv4 addresses | `aqry example.com --all` |
+| IPv6 records | `aqry example.com -t AAAA` |
+| Mail records | `aqry example.com -t MX --all` |
+| TXT records | `aqry example.com -t TXT --all` |
+| Name servers | `aqry example.com -t NS --all` |
+| JSON output | `aqry example.com --json` |
+| Use Cloudflare DNS | `aqry example.com -s 1.1.1.1` |
+| Open TUI | `aqry` |
 
 ### Flags
 
@@ -201,15 +220,13 @@ aqry --interactive example.com
 
 ## Interactive TUI
 
-Run `aqry` without a domain. Focus starts in the domain input.
-
-`Tab` cycles through:
+Run `aqry` without a domain. Focus starts in the domain input, and `Tab` cycles through the workspace:
 
 ```text
 Domain → Record Type → Resolver → Results
 ```
 
-The focused section has a `›` marker and an accent highlight. On Record Type or Resolver, press `Enter` or an arrow key to open its picker.
+The focused section has a `›` marker and accent border. On Record Type or Resolver, press `Enter` or an arrow key to open its picker.
 
 ### Keyboard controls
 
@@ -242,7 +259,7 @@ Letter shortcuts are treated as normal text while the domain input is focused. P
 | `TXT` | Text records |
 | `NS` | Authoritative name servers |
 
-`SOA`, `CAA`, and `SRV` are intentionally deferred in the current version.
+`SOA`, `CAA`, and `SRV` are planned but are not implemented in the current version.
 
 ### Resolver presets
 
@@ -267,13 +284,15 @@ Letter shortcuts are treated as normal text while the domain input is focused. P
 
 ## Platform support
 
-| Platform | Status |
+| Platform | Installation status |
 | --- | --- |
-| Linux amd64 / arm64 | Supported |
-| macOS amd64 / arm64 | Supported by the source installer |
-| Windows amd64 | Prebuilt zip available; cross-build verified |
+| Linux amd64 / arm64 | Supported by the repository binary installer |
+| macOS amd64 / arm64 | Supported by the repository binary installer |
+| Windows amd64 | Prebuilt zip available; one-command installer planned |
 
-Windows PowerShell installation without Go:
+### Windows
+
+Install the prebuilt binary without Go from PowerShell:
 
 ```powershell
 $archive = "$env:TEMP\aqry.zip"
@@ -290,7 +309,25 @@ Expand-Archive -Path $archive -DestinationPath $installDir -Force
 
 Add `$env:LOCALAPPDATA\Programs\aqry` to your user `PATH` to run `aqry.exe` from any terminal.
 
+## Roadmap
+
+- [x] Fast A-record lookup
+- [x] Interactive Bubble Tea TUI
+- [x] Record type picker
+- [x] Resolver picker
+- [x] JSON output
+- [ ] Prebuilt GitHub Release binaries
+- [ ] Windows one-command installer
+- [ ] Homebrew tap
+- [ ] AUR package
+- [ ] Scoop package
+- [ ] SOA, CAA, and SRV records
+- [ ] DNS propagation comparison
+- [ ] Config file support
+
 ## Development
+
+Run the test suite and static checks:
 
 ```sh
 go test ./...
@@ -304,7 +341,7 @@ Maintainers can regenerate every committed platform archive and `SHA256SUMS` wit
 scripts/build-artifacts.sh
 ```
 
-The artifact builder requires Go, `tar`, and `zip`. End users installing a prebuilt binary do not need these build tools.
+The artifact builder requires Go, `tar`, and `zip`. End users installing a prebuilt binary do not need those build tools.
 
 Most tests use injected resolvers and do not access the network. Enable the optional live smoke test with:
 
@@ -315,8 +352,9 @@ AQRY_LIVE_DNS_TEST=1 go test ./internal/dns -run TestLiveSystemResolver
 ## Current limitations
 
 - Go's standard resolver APIs do not expose accurate TTL values, so TTL is omitted.
-- SOA, CAA, DNSSEC validation, propagation comparison, history, and config files are not implemented yet.
+- SOA, CAA, SRV, DNSSEC validation, propagation comparison, history, and config files are not implemented yet.
 - Clipboard integration depends on clipboard support being available in the host session.
+- Prebuilt binaries currently live in the repository rather than GitHub Releases.
 
 ## Uninstall
 
@@ -326,19 +364,21 @@ If installed into the default user directory:
 rm "$HOME/.local/bin/aqry"
 ```
 
-If the installer selected `/usr/local/bin`, remove `/usr/local/bin/aqry` instead.
+If the installer selected `/usr/local/bin`, remove `/usr/local/bin/aqry` instead. For a custom location, remove the path printed by the installer.
 
 ## Contributing
 
-Bug reports and focused pull requests are welcome. Before opening a pull request, run:
+Bug reports, documentation improvements, and focused pull requests are welcome. Before opening a pull request, run:
 
 ```sh
 go test ./...
 go vet ./...
 ```
 
-<div align="center">
+## License
 
-Built with [Go](https://go.dev/), [Cobra](https://github.com/spf13/cobra), [Bubble Tea](https://github.com/charmbracelet/bubbletea), [Bubbles](https://github.com/charmbracelet/bubbles), and [Lip Gloss](https://github.com/charmbracelet/lipgloss).
+A project license has not been selected yet. License information will be added before the stable release.
 
-</div>
+## Credits / Built with
+
+`aqry` is built with [Go](https://go.dev/), [Cobra](https://github.com/spf13/cobra), [Bubble Tea](https://github.com/charmbracelet/bubbletea), [Bubbles](https://github.com/charmbracelet/bubbles), and [Lip Gloss](https://github.com/charmbracelet/lipgloss).

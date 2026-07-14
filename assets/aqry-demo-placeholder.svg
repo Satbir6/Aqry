@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title description">
+  <title id="title">aqry terminal demo placeholder</title>
+  <description id="description">A dark terminal-style preview for aqry. A recorded demo GIF will replace this image later.</description>
+  <rect width="1280" height="720" fill="#080a0f"/>
+  <rect x="55" y="55" width="1170" height="610" rx="18" fill="#11151e" stroke="#343b4d" stroke-width="2"/>
+  <circle cx="88" cy="88" r="7" fill="#f07178"/>
+  <circle cx="112" cy="88" r="7" fill="#e7b75f"/>
+  <circle cx="136" cy="88" r="7" fill="#63d297"/>
+  <text x="640" y="95" text-anchor="middle" fill="#7b8496" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">aqry — DNS Resolver</text>
+  <line x1="55" y1="120" x2="1225" y2="120" stroke="#343b4d" stroke-width="2"/>
+
+  <rect x="85" y="150" width="510" height="405" rx="10" fill="#151a24" stroke="#7c8cff" stroke-width="2"/>
+  <text x="115" y="193" fill="#7c8cff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="21" font-weight="700">› Domain</text>
+  <text x="115" y="229" fill="#e6e9ef" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="21">example.com</text>
+  <text x="115" y="287" fill="#e6e9ef" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" font-weight="700">Record Type</text>
+  <rect x="115" y="306" width="48" height="34" rx="5" fill="#7c8cff"/>
+  <text x="139" y="329" text-anchor="middle" fill="#10131a" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" font-weight="700">A</text>
+  <text x="178" y="329" fill="#7b8496" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17">AAAA  CNAME  MX  TXT  NS</text>
+  <text x="115" y="393" fill="#e6e9ef" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" font-weight="700">Resolver</text>
+  <text x="115" y="429" fill="#e6e9ef" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20">System DNS</text>
+  <text x="115" y="508" fill="#7b8496" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17">Status · Ready</text>
+
+  <rect x="625" y="150" width="570" height="230" rx="10" fill="#151a24" stroke="#343b4d" stroke-width="2"/>
+  <text x="655" y="195" fill="#63d297" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" font-weight="700">✓ Resolved successfully</text>
+  <text x="655" y="229" fill="#7b8496" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17">example.com · A record · System DNS</text>
+  <text x="655" y="310" fill="#e6e9ef" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="30" font-weight="700">104.20.34.220</text>
+
+  <text x="640" y="605" text-anchor="middle" fill="#7b8496" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">Demo GIF coming soon</text>
+  <text x="640" y="635" text-anchor="middle" fill="#495166" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">enter lookup · tab navigate · ? help · ctrl+c quit</text>
+</svg>
