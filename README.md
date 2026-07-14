@@ -32,10 +32,10 @@
 ## Preview
 
 <p align="center">
-  <img src="assets/aqry-demo-placeholder.svg" alt="Dark terminal preview of the aqry interactive DNS resolver" width="900">
+  <img src="assets/aqry-demo.gif" alt="Animated terminal demo of aqry command-line lookup and interactive DNS resolver" width="900">
 </p>
 
-<p align="center"><em>A recorded terminal demo will replace this placeholder.</em></p>
+<p align="center"><em>Fast answers for scripts, with a keyboard-driven workspace for deeper inspection.</em></p>
 
 ## Quick start
 
@@ -349,6 +349,14 @@ Most tests use injected resolvers and do not access the network. Enable the opti
 AQRY_LIVE_DNS_TEST=1 go test ./internal/dns -run TestLiveSystemResolver
 ```
 
+Regenerate the README demo with [VHS](https://github.com/charmbracelet/vhs):
+
+```sh
+scripts/generate-demo.sh
+```
+
+The reproducible recording source is stored in `assets/aqry-demo.tape`. Rendering it performs live DNS lookups.
+
 ## Current limitations
 
 - Go's standard resolver APIs do not expose accurate TTL values, so TTL is omitted.
@@ -381,4 +389,4 @@ A project license has not been selected yet. License information will be added b
 
 ## Credits / Built with
 
-`aqry` is built with [Go](https://go.dev/), [Cobra](https://github.com/spf13/cobra), [Bubble Tea](https://github.com/charmbracelet/bubbletea), [Bubbles](https://github.com/charmbracelet/bubbles), and [Lip Gloss](https://github.com/charmbracelet/lipgloss).
+`aqry` is built with [Go](https://go.dev/), [Cobra](https://github.com/spf13/cobra), [Bubble Tea](https://github.com/charmbracelet/bubbletea), [Bubbles](https://github.com/charmbracelet/bubbles), and [Lip Gloss](https://github.com/charmbracelet/lipgloss). The README demo is recorded with [VHS](https://github.com/charmbracelet/vhs).
