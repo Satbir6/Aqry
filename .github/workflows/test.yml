@@ -19,6 +19,17 @@ jobs:
           cache: true
       - run: go test ./...
       - run: go vet ./...
+      - run: sh -n scripts/install.sh
+      - name: Test source installer
+        env:
+          AQRY_INSTALL_DIR: ${{ runner.temp }}/aqry-bin
+          AQRY_REF: ci-test
+          AQRY_SOURCE_ARCHIVE: ${{ runner.temp }}/aqry-source.tar.gz
+          NO_COLOR: "1"
+        run: |
+          tar -czf "$AQRY_SOURCE_ARCHIVE" --exclude=.git --transform='s,^\.,Aqry-main,' .
+          sh scripts/install.sh
+          "$AQRY_INSTALL_DIR/aqry" --version
 
   build:
     runs-on: ubuntu-latest
@@ -26,8 +37,19 @@ jobs:
       matrix:
         include:
           - goos: linux
+            goarch: amd64
             output: aqry-linux-amd64
+          - goos: linux
+            goarch: arm64
+            output: aqry-linux-arm64
+          - goos: darwin
+            goarch: amd64
+            output: aqry-darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            output: aqry-darwin-arm64
           - goos: windows
+            goarch: amd64
             output: aqry-windows-amd64.exe
     steps:
       - uses: actions/checkout@v4
@@ -38,6 +60,6 @@ jobs:
       - name: Build ${{ matrix.goos }}
         env:
           GOOS: ${{ matrix.goos }}
-          GOARCH: amd64
+          GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: "0"
         run: go build -o ${{ matrix.output }} ./cmd/aqry
