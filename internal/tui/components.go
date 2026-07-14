@@ -20,13 +20,35 @@ func (m Model) header(width int) string {
 }
 
 func (m Model) footer() string {
-	if m.focus == FocusDomainInput {
+	switch m.focus {
+	case FocusDomainInput:
 		return m.styles.Footer.Render("enter lookup  tab options  ? help  ctrl+c quit")
+	case FocusRecordType:
+		return m.styles.Footer.Render("enter choose record  tab next  ? help  q quit")
+	case FocusResolver:
+		return m.styles.Footer.Render("enter choose resolver  tab next  ? help  q quit")
+	case FocusResults:
+		if m.state == StateSuccess {
+			return m.styles.Footer.Render("↑↓ select  c copy  a all  tab input  ? help  q quit")
+		}
+		return m.styles.Footer.Render("enter lookup  tab input  ? help  q quit")
+	default:
+		return m.styles.Footer.Render("tab navigate  ? help  q quit")
 	}
-	if m.state == StateSuccess {
-		return m.styles.Footer.Render("↑↓ select  c copy  a all  r records  s resolver  ? help  q quit")
+}
+
+func (m Model) focusLabel(area FocusArea, label string) string {
+	if m.focus == area {
+		return m.styles.Primary.Render("› " + label)
 	}
-	return m.styles.Footer.Render("enter lookup  r records  s resolver  ? help  q quit")
+	return m.styles.Label.Render("  " + label)
+}
+
+func (m Model) focusedValue(area FocusArea, value string) string {
+	if m.focus == area {
+		return m.styles.FocusedValue.Render(value)
+	}
+	return value
 }
 
 func (m Model) recordPills() string {
@@ -55,14 +77,14 @@ func (m Model) resolverLabel() string {
 
 func (m Model) inputContent() string {
 	return strings.Join([]string{
-		m.styles.Label.Render("Domain"),
+		m.focusLabel(FocusDomainInput, "Domain"),
 		m.input.View(),
 		"",
-		m.styles.Label.Render("Record Type"),
+		m.focusLabel(FocusRecordType, "Record Type"),
 		m.recordPills(),
 		"",
-		m.styles.Label.Render("Resolver"),
-		m.resolverLabel(),
+		m.focusLabel(FocusResolver, "Resolver"),
+		m.focusedValue(FocusResolver, m.resolverLabel()),
 		"",
 		m.styles.Muted.Render("Status · " + m.status),
 	}, "\n")

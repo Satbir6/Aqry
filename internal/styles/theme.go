@@ -22,6 +22,7 @@ type Set struct {
 	Input            lipgloss.Style
 	RecordPill       lipgloss.Style
 	RecordPillActive lipgloss.Style
+	FocusedValue     lipgloss.Style
 	ResultValue      lipgloss.Style
 	Modal            lipgloss.Style
 	ModalTitle       lipgloss.Style
@@ -51,15 +52,17 @@ func New(noColor bool) Set {
 		Input:            lipgloss.NewStyle(),
 		RecordPill:       lipgloss.NewStyle().Padding(0, 1),
 		RecordPillActive: lipgloss.NewStyle().Padding(0, 1).Bold(true),
+		FocusedValue:     lipgloss.NewStyle().Padding(0, 1).Bold(true),
 		ResultValue:      lipgloss.NewStyle().Bold(true),
 		Modal:            lipgloss.NewStyle().Border(border).Padding(1, 2),
 		ModalTitle:       lipgloss.NewStyle().Bold(true).MarginBottom(1),
-		SelectedItem:     lipgloss.NewStyle().Bold(true),
+		SelectedItem:     lipgloss.NewStyle().Padding(0, 1).Bold(true),
 	}
 
 	if noColor {
 		set.FocusedPanel = set.FocusedPanel.BorderStyle(lipgloss.DoubleBorder())
 		set.RecordPillActive = set.RecordPillActive.Reverse(true)
+		set.FocusedValue = set.FocusedValue.Reverse(true)
 		set.SelectedItem = set.SelectedItem.Reverse(true)
 		return set
 	}
@@ -80,10 +83,13 @@ func New(noColor bool) Set {
 	set.RecordPill = set.RecordPill.Foreground(lipgloss.Color(theme.Muted))
 	set.RecordPillActive = set.RecordPillActive.
 		Foreground(lipgloss.Color("#10131A")).Background(lipgloss.Color(theme.Primary))
+	set.FocusedValue = set.FocusedValue.
+		Foreground(lipgloss.Color("#10131A")).Background(lipgloss.Color(theme.Primary))
 	set.ResultValue = set.ResultValue.Foreground(lipgloss.Color(theme.Text))
 	set.Modal = set.Modal.BorderForeground(lipgloss.Color(theme.Primary))
 	set.ModalTitle = set.ModalTitle.Foreground(lipgloss.Color(theme.Primary))
-	set.SelectedItem = set.SelectedItem.Foreground(lipgloss.Color(theme.Primary))
+	set.SelectedItem = set.SelectedItem.
+		Foreground(lipgloss.Color("#10131A")).Background(lipgloss.Color(theme.Primary))
 
 	return set
 }

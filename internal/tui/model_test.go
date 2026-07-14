@@ -181,6 +181,49 @@ func TestResultNavigationAndShowAll(t *testing.T) {
 	}
 }
 
+func TestResolverFocusHasSectionHighlightAndContextualHelp(t *testing.T) {
+	t.Parallel()
+
+	model := NewModel(Options{NoColor: true, Server: "8.8.8.8"})
+	model.focus = FocusResolver
+	model.input.Blur()
+
+	content := model.inputContent()
+	if !strings.Contains(content, "› Resolver") {
+		t.Fatalf("resolver focus marker missing from %q", content)
+	}
+	if strings.Contains(content, "› Record Type") || strings.Contains(content, "› Domain") {
+		t.Fatalf("another section appears focused in %q", content)
+	}
+	if footer := model.footer(); !strings.Contains(footer, "enter choose resolver") {
+		t.Fatalf("resolver footer is not contextual: %q", footer)
+	}
+}
+
+func TestArrowOnResolverFocusOpensPickerWithoutMovingResults(t *testing.T) {
+	t.Parallel()
+
+	model := NewModel(Options{NoColor: true, Server: "8.8.8.8"})
+	model.focus = FocusResolver
+	model.input.Blur()
+	model.state = StateSuccess
+	model.result = dns.LookupResult{Records: []dns.Record{
+		{Type: dns.RecordA, Value: "192.0.2.1"},
+		{Type: dns.RecordA, Value: "192.0.2.2"},
+	}}
+
+	model, _ = updateModel(t, model, tea.KeyMsg{Type: tea.KeyDown})
+	if model.modal != ModalResolverPicker {
+		t.Fatalf("down on resolver focus opened modal %v", model.modal)
+	}
+	if model.selectedRecord != 0 {
+		t.Fatalf("resolver navigation moved result selection to %d", model.selectedRecord)
+	}
+	if picker := model.modalView(); !strings.Contains(picker, "› Google") {
+		t.Fatalf("selected resolver is not marked in picker: %q", picker)
+	}
+}
+
 func TestCopySelectedResult(t *testing.T) {
 	t.Parallel()
 

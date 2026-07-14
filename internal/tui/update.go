@@ -184,10 +184,34 @@ func (m Model) handleKey(key tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m, copyCmd(m.clipboard, recordDisplayValue(record))
 		}
 	case "j", "down":
-		m.moveResult(1)
+		if m.focus == FocusRecordType {
+			m.syncPickerIndexes()
+			m.modal = ModalRecordPicker
+			return m, nil
+		}
+		if m.focus == FocusResolver {
+			m.syncPickerIndexes()
+			m.modal = ModalResolverPicker
+			return m, nil
+		}
+		if m.focus == FocusResults {
+			m.moveResult(1)
+		}
 		return m, nil
 	case "k", "up":
-		m.moveResult(-1)
+		if m.focus == FocusRecordType {
+			m.syncPickerIndexes()
+			m.modal = ModalRecordPicker
+			return m, nil
+		}
+		if m.focus == FocusResolver {
+			m.syncPickerIndexes()
+			m.modal = ModalResolverPicker
+			return m, nil
+		}
+		if m.focus == FocusResults {
+			m.moveResult(-1)
+		}
 		return m, nil
 	}
 
