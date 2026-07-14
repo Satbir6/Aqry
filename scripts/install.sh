@@ -4,8 +4,6 @@ set -eu
 
 REPOSITORY=${AQRY_REPOSITORY:-Satbir6/Aqry}
 REF=${AQRY_REF:-main}
-MIN_GO_MAJOR=1
-MIN_GO_MINOR=23
 TEMP_DIR=
 INSTALL_TMP=
 
@@ -62,13 +60,13 @@ detect_platform() {
   SYSTEM_NAME=$(uname -s)
   case "$SYSTEM_NAME" in
     Linux)
-      OS_NAME=linux
+      OS_NAME=Linux
       ;;
     Darwin)
-      OS_NAME=darwin
+      OS_NAME=Darwin
       ;;
     MINGW*|MSYS*|CYGWIN*|Windows_NT)
-      fail "this installer supports Linux and macOS; build aqry from source with Go on Windows"
+      fail "use the Windows zip from https://github.com/$REPOSITORY/tree/$REF/dist"
       ;;
     *)
       fail "unsupported operating system: $SYSTEM_NAME"
@@ -78,7 +76,7 @@ detect_platform() {
   MACHINE_NAME=$(uname -m)
   case "$MACHINE_NAME" in
     x86_64|amd64)
-      ARCH_NAME=amd64
+      ARCH_NAME=x86_64
       ;;
     arm64|aarch64)
       ARCH_NAME=arm64
@@ -87,75 +85,85 @@ detect_platform() {
       fail "unsupported CPU architecture: $MACHINE_NAME (supported: amd64, arm64)"
       ;;
   esac
+
+  ARCHIVE_NAME=aqry_${OS_NAME}_${ARCH_NAME}.tar.gz
 }
 
-check_go_version() {
-  command -v go >/dev/null 2>&1 || fail "Go 1.23 or newer is required because aqry is installed from source: https://go.dev/dl/"
-
-  GO_VERSION=$(go env GOVERSION 2>/dev/null || true)
-  GO_NUMBER=${GO_VERSION#go}
-  GO_MAJOR=${GO_NUMBER%%.*}
-  GO_REMAINDER=${GO_NUMBER#*.}
-  GO_MINOR=${GO_REMAINDER%%.*}
-
-  case "$GO_MAJOR:$GO_MINOR" in
-    *[!0-9:]*)
-      fail "could not parse the installed Go version: $GO_VERSION"
-      ;;
-  esac
-
-  if [ "$GO_MAJOR" -lt "$MIN_GO_MAJOR" ] || { [ "$GO_MAJOR" -eq "$MIN_GO_MAJOR" ] && [ "$GO_MINOR" -lt "$MIN_GO_MINOR" ]; }; then
-    fail "Go ${MIN_GO_MAJOR}.${MIN_GO_MINOR} or newer is required; found $GO_VERSION"
-  fi
-}
-
-download_source() {
-  ARCHIVE_PATH=$TEMP_DIR/aqry-source.tar.gz
-
-  if [ -n "${AQRY_SOURCE_ARCHIVE:-}" ]; then
-    [ -f "$AQRY_SOURCE_ARCHIVE" ] || fail "source archive not found: $AQRY_SOURCE_ARCHIVE"
-    info "Using local source archive $AQRY_SOURCE_ARCHIVE"
-    cp "$AQRY_SOURCE_ARCHIVE" "$ARCHIVE_PATH"
-    return
-  fi
-
-  SOURCE_URL=${AQRY_SOURCE_URL:-https://codeload.github.com/${REPOSITORY}/tar.gz/${REF}}
-  info "Downloading source from $REPOSITORY at $REF"
+download_file() {
+  DOWNLOAD_URL=$1
+  DOWNLOAD_PATH=$2
 
   if command -v curl >/dev/null 2>&1; then
     curl --fail --silent --show-error --location --retry 3 --proto '=https' --tlsv1.2 \
-      "$SOURCE_URL" --output "$ARCHIVE_PATH"
+      "$DOWNLOAD_URL" --output "$DOWNLOAD_PATH"
   elif command -v wget >/dev/null 2>&1; then
-    wget --quiet --output-document="$ARCHIVE_PATH" "$SOURCE_URL"
+    wget --quiet --output-document="$DOWNLOAD_PATH" "$DOWNLOAD_URL"
   else
-    fail "curl or wget is required to download the aqry source archive"
+    fail "curl or wget is required to download aqry"
   fi
 }
 
-extract_source() {
-  SOURCE_DIR=$TEMP_DIR/source
-  mkdir -p "$SOURCE_DIR"
-  info "Extracting source archive"
-  tar -xzf "$ARCHIVE_PATH" -C "$SOURCE_DIR" --strip-components=1
+acquire_artifact() {
+  ARCHIVE_PATH=$TEMP_DIR/$ARCHIVE_NAME
+  CHECKSUM_PATH=$TEMP_DIR/SHA256SUMS
 
-  [ -f "$SOURCE_DIR/go.mod" ] || fail "the downloaded archive does not contain aqry source code"
-  [ -d "$SOURCE_DIR/cmd/aqry" ] || fail "the downloaded archive is missing cmd/aqry"
+  if [ -n "${AQRY_ARTIFACT_DIR:-}" ]; then
+    [ -f "$AQRY_ARTIFACT_DIR/$ARCHIVE_NAME" ] || fail "artifact not found: $AQRY_ARTIFACT_DIR/$ARCHIVE_NAME"
+    [ -f "$AQRY_ARTIFACT_DIR/SHA256SUMS" ] || fail "checksum file not found: $AQRY_ARTIFACT_DIR/SHA256SUMS"
+    info "Using bundled artifact from $AQRY_ARTIFACT_DIR"
+    cp "$AQRY_ARTIFACT_DIR/$ARCHIVE_NAME" "$ARCHIVE_PATH"
+    cp "$AQRY_ARTIFACT_DIR/SHA256SUMS" "$CHECKSUM_PATH"
+    return
+  fi
+
+  DOWNLOAD_BASE=${AQRY_DOWNLOAD_BASE:-https://raw.githubusercontent.com/${REPOSITORY}/${REF}/dist}
+  info "Downloading $ARCHIVE_NAME from repository branch $REF"
+  download_file "$DOWNLOAD_BASE/$ARCHIVE_NAME" "$ARCHIVE_PATH"
+  download_file "$DOWNLOAD_BASE/SHA256SUMS" "$CHECKSUM_PATH"
 }
 
-build_binary() {
-  BINARY_PATH=$TEMP_DIR/aqry
-  VERSION_LABEL=source-$REF
-  info "Building aqry for $OS_NAME/$ARCH_NAME with $GO_VERSION"
+file_checksum() {
+  CHECKSUM_FILE=$1
 
-  (
-    cd "$SOURCE_DIR"
-    CGO_ENABLED=0 GOOS="$OS_NAME" GOARCH="$ARCH_NAME" \
-      go build -trimpath -buildvcs=false \
-        -ldflags "-s -w -X aqry/internal/version.Version=${VERSION_LABEL}" \
-        -o "$BINARY_PATH" ./cmd/aqry
-  )
+  if command -v sha256sum >/dev/null 2>&1; then
+    CHECKSUM_VALUE=$(sha256sum "$CHECKSUM_FILE")
+    printf '%s\n' "${CHECKSUM_VALUE%% *}"
+  elif command -v shasum >/dev/null 2>&1; then
+    CHECKSUM_VALUE=$(shasum -a 256 "$CHECKSUM_FILE")
+    printf '%s\n' "${CHECKSUM_VALUE%% *}"
+  elif command -v openssl >/dev/null 2>&1; then
+    CHECKSUM_VALUE=$(openssl dgst -sha256 "$CHECKSUM_FILE")
+    printf '%s\n' "${CHECKSUM_VALUE##* }"
+  else
+    fail "sha256sum, shasum, or openssl is required to verify the download"
+  fi
+}
 
-  [ -x "$BINARY_PATH" ] || fail "the aqry binary was not created"
+verify_artifact() {
+  EXPECTED_CHECKSUM=
+  while read -r CHECKSUM_VALUE CHECKSUM_FILE_NAME; do
+    CHECKSUM_FILE_NAME=${CHECKSUM_FILE_NAME#\*}
+    if [ "$CHECKSUM_FILE_NAME" = "$ARCHIVE_NAME" ]; then
+      EXPECTED_CHECKSUM=$CHECKSUM_VALUE
+      break
+    fi
+  done < "$CHECKSUM_PATH"
+
+  [ -n "$EXPECTED_CHECKSUM" ] || fail "no checksum was published for $ARCHIVE_NAME"
+
+  ACTUAL_CHECKSUM=$(file_checksum "$ARCHIVE_PATH")
+  [ "$ACTUAL_CHECKSUM" = "$EXPECTED_CHECKSUM" ] || fail "checksum verification failed for $ARCHIVE_NAME"
+  success "Checksum verified"
+}
+
+extract_binary() {
+  EXTRACT_DIR=$TEMP_DIR/extracted
+  mkdir -p "$EXTRACT_DIR"
+  info "Extracting aqry binary"
+  tar -xzf "$ARCHIVE_PATH" -C "$EXTRACT_DIR"
+  BINARY_PATH=$EXTRACT_DIR/aqry
+  [ -f "$BINARY_PATH" ] || fail "the downloaded archive does not contain aqry"
+  chmod 0755 "$BINARY_PATH"
 }
 
 choose_install_directory() {
@@ -224,13 +232,12 @@ main() {
   require_command chmod
 
   detect_platform
-  check_go_version
   info "Detected $OS_NAME/$ARCH_NAME"
 
   TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/aqry.XXXXXX")
-  download_source
-  extract_source
-  build_binary
+  acquire_artifact
+  verify_artifact
+  extract_binary
   choose_install_directory
   install_binary
   verify_installation

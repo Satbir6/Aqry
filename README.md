@@ -47,7 +47,7 @@ $ aqry example.com
 
 ### One-command installation on Linux and macOS
 
-The installer builds `aqry` directly from the repository source. **It does not download or use GitHub Release artifacts.**
+The installer downloads a prebuilt `aqry` binary stored directly in this repository. **It does not use GitHub Release artifacts, and users do not need Go installed.**
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.sh | sh
@@ -57,18 +57,17 @@ The installer:
 
 1. Detects Linux or macOS.
 2. Detects `amd64` or `arm64`.
-3. Downloads and extracts the repository source archive.
-4. Builds the native binary with Go.
+3. Downloads the matching binary archive and its published SHA-256 checksum.
+4. Verifies and extracts the binary.
 5. Installs it into a user-writable binary directory.
 6. Verifies the installation with `aqry --version`.
 7. Prints the installed path and the next command to run.
 
-Go 1.23 or newer is required because installation happens from source. The installer also needs `curl` or `wget`, plus `tar`.
+The installer needs `curl` or `wget`, `tar`, and one of `sha256sum`, `shasum`, or `openssl`. Go is not required.
 
 #### Arch Linux
 
 ```sh
-sudo pacman -S --needed go
 curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.sh | sh
 ```
 
@@ -95,14 +94,28 @@ curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.s
 
 By default, the installer uses `/usr/local/bin` only when that directory is already writable. Otherwise it uses `$HOME/.local/bin`; it never invokes `sudo`.
 
-To install another branch, tag, or commit:
+To install from another branch, tag, or commit that contains matching files under `dist/`:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.sh | \
   AQRY_REF=main sh
 ```
 
-### Build manually
+### Direct binary downloads
+
+| Platform | Architecture | Download |
+| --- | --- | --- |
+| Linux | x86_64 / amd64 | [aqry_Linux_x86_64.tar.gz](https://raw.githubusercontent.com/Satbir6/Aqry/main/dist/aqry_Linux_x86_64.tar.gz) |
+| Linux | arm64 | [aqry_Linux_arm64.tar.gz](https://raw.githubusercontent.com/Satbir6/Aqry/main/dist/aqry_Linux_arm64.tar.gz) |
+| macOS | Intel / x86_64 | [aqry_Darwin_x86_64.tar.gz](https://raw.githubusercontent.com/Satbir6/Aqry/main/dist/aqry_Darwin_x86_64.tar.gz) |
+| macOS | Apple Silicon / arm64 | [aqry_Darwin_arm64.tar.gz](https://raw.githubusercontent.com/Satbir6/Aqry/main/dist/aqry_Darwin_arm64.tar.gz) |
+| Windows | x86_64 / amd64 | [aqry_Windows_x86_64.zip](https://raw.githubusercontent.com/Satbir6/Aqry/main/dist/aqry_Windows_x86_64.zip) |
+
+Published hashes are available in [SHA256SUMS](https://raw.githubusercontent.com/Satbir6/Aqry/main/dist/SHA256SUMS).
+
+### Build from source
+
+Building from source is optional and intended for contributors. It requires Go 1.23 or newer.
 
 ```sh
 git clone https://github.com/Satbir6/Aqry.git
@@ -258,16 +271,24 @@ Letter shortcuts are treated as normal text while the domain input is focused. P
 | --- | --- |
 | Linux amd64 / arm64 | Supported |
 | macOS amd64 / arm64 | Supported by the source installer |
-| Windows amd64 | Cross-build verified; build from source with Go |
+| Windows amd64 | Prebuilt zip available; cross-build verified |
 
-Windows PowerShell build:
+Windows PowerShell installation without Go:
 
 ```powershell
-git clone https://github.com/Satbir6/Aqry.git
-Set-Location Aqry
-go build -o aqry.exe ./cmd/aqry
-./aqry.exe --version
+$archive = "$env:TEMP\aqry.zip"
+$installDir = "$env:LOCALAPPDATA\Programs\aqry"
+
+Invoke-WebRequest `
+  -Uri "https://raw.githubusercontent.com/Satbir6/Aqry/main/dist/aqry_Windows_x86_64.zip" `
+  -OutFile $archive
+
+New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+Expand-Archive -Path $archive -DestinationPath $installDir -Force
+& "$installDir\aqry.exe" --version
 ```
+
+Add `$env:LOCALAPPDATA\Programs\aqry` to your user `PATH` to run `aqry.exe` from any terminal.
 
 ## Development
 
@@ -276,6 +297,14 @@ go test ./...
 go test -race ./...
 go vet ./...
 ```
+
+Maintainers can regenerate every committed platform archive and `SHA256SUMS` with:
+
+```sh
+scripts/build-artifacts.sh
+```
+
+The artifact builder requires Go, `tar`, and `zip`. End users installing a prebuilt binary do not need these build tools.
 
 Most tests use injected resolvers and do not access the network. Enable the optional live smoke test with:
 
@@ -288,7 +317,6 @@ AQRY_LIVE_DNS_TEST=1 go test ./internal/dns -run TestLiveSystemResolver
 - Go's standard resolver APIs do not expose accurate TTL values, so TTL is omitted.
 - SOA, CAA, DNSSEC validation, propagation comparison, history, and config files are not implemented yet.
 - Clipboard integration depends on clipboard support being available in the host session.
-- The one-command installer builds from source and therefore requires Go 1.23+.
 
 ## Uninstall
 

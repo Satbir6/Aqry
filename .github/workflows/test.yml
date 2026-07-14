@@ -20,16 +20,13 @@ jobs:
       - run: go test ./...
       - run: go vet ./...
       - run: sh -n scripts/install.sh
-      - name: Test source installer
+      - run: sh -n scripts/build-artifacts.sh
+      - name: Test bundled-binary installer
         env:
+          AQRY_ARTIFACT_DIR: ${{ github.workspace }}/dist
           AQRY_INSTALL_DIR: ${{ runner.temp }}/aqry-bin
-          AQRY_REF: ci-test
-          AQRY_SOURCE_ARCHIVE: ${{ runner.temp }}/aqry-source.tar.gz
           NO_COLOR: "1"
-        run: |
-          tar -czf "$AQRY_SOURCE_ARCHIVE" --exclude=.git --transform='s,^\.,Aqry-main,' .
-          sh scripts/install.sh
-          "$AQRY_INSTALL_DIR/aqry" --version
+        run: sh scripts/install.sh
 
   build:
     runs-on: ubuntu-latest
