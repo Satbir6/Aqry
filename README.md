@@ -131,6 +131,31 @@ curl -fsSL https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.s
   AQRY_REF=main sh
 ```
 
+### Windows
+
+Run this command in Windows PowerShell 5.1 or PowerShell 7:
+
+```powershell
+irm https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.ps1 | iex
+```
+
+The installer detects Windows `amd64`, downloads the committed zip and checksum file, verifies SHA-256, and installs `aqry.exe` to `%LOCALAPPDATA%\Programs\aqry`. It adds that directory to your user `PATH`, verifies the binary with `aqry.exe --version`, and prints the next commands to run. Administrator access and Go are not required.
+
+To review the installer before running it:
+
+```powershell
+irm https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.ps1 -OutFile install-aqry.ps1
+Get-Content .\install-aqry.ps1
+& .\install-aqry.ps1
+```
+
+Choose another installation directory with:
+
+```powershell
+$env:AQRY_INSTALL_DIR = "$HOME\bin"
+irm https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.ps1 | iex
+```
+
 ### Direct binary downloads
 
 These archives are committed under `dist/`; they are not GitHub Release assets.
@@ -288,26 +313,17 @@ Letter shortcuts are treated as normal text while the domain input is focused. P
 | --- | --- |
 | Linux amd64 / arm64 | Supported by the repository binary installer |
 | macOS amd64 / arm64 | Supported by the repository binary installer |
-| Windows amd64 | Prebuilt zip available; one-command installer planned |
+| Windows amd64 | Supported by the repository binary installer |
 
 ### Windows
 
 Install the prebuilt binary without Go from PowerShell:
 
 ```powershell
-$archive = "$env:TEMP\aqry.zip"
-$installDir = "$env:LOCALAPPDATA\Programs\aqry"
-
-Invoke-WebRequest `
-  -Uri "https://raw.githubusercontent.com/Satbir6/Aqry/main/dist/aqry_Windows_x86_64.zip" `
-  -OutFile $archive
-
-New-Item -ItemType Directory -Force -Path $installDir | Out-Null
-Expand-Archive -Path $archive -DestinationPath $installDir -Force
-& "$installDir\aqry.exe" --version
+irm https://raw.githubusercontent.com/Satbir6/Aqry/main/scripts/install.ps1 | iex
 ```
 
-Add `$env:LOCALAPPDATA\Programs\aqry` to your user `PATH` to run `aqry.exe` from any terminal.
+The installer adds aqry to your user `PATH`. Open a new terminal afterward if the current session does not recognize `aqry` immediately.
 
 ## Roadmap
 
@@ -317,7 +333,7 @@ Add `$env:LOCALAPPDATA\Programs\aqry` to your user `PATH` to run `aqry.exe` from
 - [x] Resolver picker
 - [x] JSON output
 - [ ] Prebuilt GitHub Release binaries
-- [ ] Windows one-command installer
+- [x] Windows one-command installer
 - [ ] Homebrew tap
 - [ ] AUR package
 - [ ] Scoop package
@@ -366,6 +382,8 @@ The reproducible recording source is stored in `assets/aqry-demo.tape`. Renderin
 
 ## Uninstall
 
+### Linux and macOS
+
 If installed into the default user directory:
 
 ```sh
@@ -373,6 +391,27 @@ rm "$HOME/.local/bin/aqry"
 ```
 
 If the installer selected `/usr/local/bin`, remove `/usr/local/bin/aqry` instead. For a custom location, remove the path printed by the installer.
+
+### Windows
+
+Remove the installation directory and its user `PATH` entry from PowerShell:
+
+```powershell
+$installDir = "$env:LOCALAPPDATA\Programs\aqry"
+Remove-Item $installDir -Recurse -Force
+
+$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+$updatedPath = (($userPath -split ";") | Where-Object {
+  $_ -and -not [string]::Equals(
+    $_.TrimEnd([IO.Path]::DirectorySeparatorChar),
+    $installDir.TrimEnd([IO.Path]::DirectorySeparatorChar),
+    [StringComparison]::OrdinalIgnoreCase
+  )
+}) -join ";"
+[Environment]::SetEnvironmentVariable("Path", $updatedPath, "User")
+```
+
+If you selected a custom installation directory, change `$installDir` before running these commands.
 
 ## Contributing
 

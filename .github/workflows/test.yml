@@ -60,3 +60,24 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: "0"
         run: go build -o ${{ matrix.output }} ./cmd/aqry
+
+  windows-installer:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test bundled-binary Windows installer
+        env:
+          AQRY_ARTIFACT_DIR: ${{ github.workspace }}\dist
+          AQRY_INSTALL_DIR: ${{ runner.temp }}\aqry-bin
+        run: |
+          & ./scripts/install.ps1
+          & ./scripts/install.ps1
+          $expected = [IO.Path]::GetFullPath("$env:AQRY_INSTALL_DIR\aqry.exe")
+          $actual = (Get-Command aqry -ErrorAction Stop).Source
+          if (-not [string]::Equals($actual, $expected, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "aqry resolved to $actual instead of $expected"
+          }
+          & aqry --version
