@@ -2,3 +2,6 @@
 *.exe
 *.test
 coverage.out
+Plan.md
+PRD.md
+TECHNICAL_DESIGN.md

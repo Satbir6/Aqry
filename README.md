@@ -8,6 +8,7 @@
 [![Go 1.23+](https://img.shields.io/badge/Go-1.23%2B-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![Platforms](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-7C8CFF)](#platform-support)
 [![Prebuilt binaries](https://img.shields.io/badge/prebuilt%20binaries-repository-63D297)](#install)
+[![License: MIT](https://img.shields.io/badge/License-MIT-63D297.svg)](./LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/Satbir6/Aqry?color=7C8CFF)](https://github.com/Satbir6/Aqry/commits/main)
 [![Repository size](https://img.shields.io/github/repo-size/Satbir6/Aqry?color=63D297)](https://github.com/Satbir6/Aqry)
 
@@ -82,6 +83,21 @@ Traditional DNS tools are excellent at deep diagnostics, but their output can be
 | `aqry` | Fast answers plus an interactive DNS workspace |
 
 ## Install
+
+| Platform | Recommended install | Requires Go |
+| --- | --- | --- |
+| Linux | `curl ... | sh` | No |
+| macOS | `curl ... | sh` | No |
+| Windows | `irm ... | iex` | No |
+| From source | `go build` | Yes |
+
+### Requirements
+
+| Platform | Required tools |
+| --- | --- |
+| Linux/macOS | `curl` or `wget`, `tar`, checksum tool |
+| Windows | PowerShell 5.1+ or PowerShell 7 |
+| Source build | Go 1.23+ |
 
 ### Linux and macOS
 
@@ -327,18 +343,27 @@ The installer adds aqry to your user `PATH`. Open a new terminal afterward if th
 
 ## Roadmap
 
+### Core
+
 - [x] Fast A-record lookup
-- [x] Interactive Bubble Tea TUI
-- [x] Record type picker
-- [x] Resolver picker
 - [x] JSON output
-- [ ] Prebuilt GitHub Release binaries
+- [x] Resolver picker
+- [x] Interactive Bubble Tea TUI
+
+### Packaging
+
+- [x] Linux/macOS one-command installer
 - [x] Windows one-command installer
+- [ ] GitHub Release binaries
 - [ ] Homebrew tap
 - [ ] AUR package
 - [ ] Scoop package
+
+### DNS features
+
 - [ ] SOA, CAA, and SRV records
 - [ ] DNS propagation comparison
+- [ ] DNSSEC validation
 - [ ] Config file support
 
 ## Development
@@ -424,8 +449,8 @@ go vet ./...
 
 ## License
 
-A project license has not been selected yet. License information will be added before the stable release.
+MIT License. See [LICENSE](./LICENSE).
 
-## Credits / Built with
+## Built with
 
 `aqry` is built with [Go](https://go.dev/), [Cobra](https://github.com/spf13/cobra), [Bubble Tea](https://github.com/charmbracelet/bubbletea), [Bubbles](https://github.com/charmbracelet/bubbles), and [Lip Gloss](https://github.com/charmbracelet/lipgloss). The README demo is recorded with [VHS](https://github.com/charmbracelet/vhs).
